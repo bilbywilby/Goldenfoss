@@ -1,0 +1,12 @@
+
+env_audit_*.txt
+.env
+.env.*
+*.log
+*.tgz
+*.tar.gz
+*.xml
+github_deploy/
+.git-credentials
+__pycache__/
+node_modules/
