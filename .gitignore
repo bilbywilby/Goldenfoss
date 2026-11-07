@@ -10,3 +10,4 @@ github_deploy/
 .git-credentials
 __pycache__/
 node_modules/
+env_audit_*.txt
