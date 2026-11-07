@@ -1,2 +1,2 @@
-#!/usr/bin/env bash
-npm run lint --if-present
+# Runs before every commit: secrets, DAG naming parity, python compile
+./scripts/check_staged.sh
