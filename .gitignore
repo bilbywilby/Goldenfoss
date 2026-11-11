@@ -11,3 +11,5 @@ github_deploy/
 __pycache__/
 node_modules/
 env_audit_*.txt
+
+/EnterpriseSecureMobileSkeleton/
