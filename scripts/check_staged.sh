@@ -7,6 +7,9 @@ fail=0
 RED=$'\033[31m'; GRN=$'\033[32m'; NC=$'\033[0m'
 
 # Files that are new or modified (skip deleted)
+HITS=$(mktemp "${TMPDIR:-/tmp}/husky_hits.XXXXXX") || { echo "cannot create temp file"; exit 1; }
+PYERR=$(mktemp "${TMPDIR:-/tmp}/husky_py.XXXXXX") || { echo "cannot create temp file"; exit 1; }
+trap 'rm -f "$HITS" "$PYERR"' EXIT
 mapfile -t FILES < <(git diff --cached --name-only --diff-filter=ACMR)
 if [ "${#FILES[@]}" -eq 0 ]; then exit 0; fi
 
@@ -18,9 +21,9 @@ for f in "${FILES[@]}"; do
   # Gate 1: obvious secrets in staged content
   if grep -InE \
       '(MASTER_AUTH_TOKEN\s*=\s*["'"'"'][a-f0-9]{32,}|gh[pousr]_[A-Za-z0-9]{36,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|api[_-]?key\s*[:=]\s*["'"'"'][A-Za-z0-9_\-]{20,})' \
-      "$f" >/tmp/husky_secret_hits 2>/dev/null; then
+      "$f" >"$HITS" 2>/dev/null; then
     echo "${RED}✖ Possible secret(s) in '$f':${NC}"
-    sed 's/^/    /' /tmp/husky_secret_hits
+    sed 's/^/    /' "$HITS"
     fail=1
   fi
 
@@ -41,9 +44,9 @@ for f in "${FILES[@]}"; do
 src=sys.stdin.buffer.read()
 with tempfile.NamedTemporaryFile(suffix=".py",delete=False) as t: t.write(src); p=t.name
 try: py_compile.compile(p,doraise=True)
-finally: os.unlink(p)' 2>/tmp/husky_py_err; then
+finally: os.unlink(p)' 2>"$PYERR"; then
       echo "${RED}✖ Python syntax error in '$f':${NC}"
-      sed 's/^/    /' /tmp/husky_py_err
+      sed 's/^/    /' "$PYERR"
       fail=1
     fi
   fi
